@@ -34,7 +34,7 @@ Azure AI Foundry est l'interface pro pour gérer vos modèles d'IA.
     - **Nom du déploiement :** Utilisez `claude-sonnet-4-6`. C'est l'identifiant que vos scripts liront.
     - Faites de même pour **Claude 3 Opus** si besoin.
 
-![Foundry Interface](2.png)
+![Foundry Interface](5.png)
 
 ---
 
@@ -46,7 +46,7 @@ Une fois le modèle déployé, vous avez besoin de deux informations :
 2.  Copiez votre **Clé API** (Key 1).
 3.  Copiez le **Point de terminaison** (Endpoint URL). C'est l'adresse à laquelle votre code va "frapper" pour parler à l'IA.
 
-![Keys & Endpoints](3.png)
+![Keys & Endpoints](5.png)
 
 ---
 
@@ -110,7 +110,7 @@ switch ($Profile) {
 3.  Lancez le génie : `claude`
 4.  **Sélection :** Choisissez l'option **"3rd-party platform"** lors de la première connexion.
 
-![Final Setup](5.png)
+![Final Setup](6.png)
 
 ---
 
