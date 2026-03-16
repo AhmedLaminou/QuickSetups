@@ -1,1 +1,62 @@
 
+# 🚀 Guide : Utiliser des LLM Gratuits (NVIDIA Nemotron, etc.) avec Claude Code via OpenRouter
+
+Ce guide vous explique comment connecter le CLI **Claude Code** d'Anthropic à **OpenRouter** pour profiter de modèles massifs et gratuits comme le **NVIDIA Nemotron-3 Super 120B**.
+
+---
+
+## 🛠️ Étape 1 : Créer un compte OpenRouter
+
+1.  Rendez-vous sur [OpenRouter.ai](https://openrouter.ai/).
+2.  Connectez-vous (Google, GitHub, ou e-mail).
+3.  Allez dans **Settings** > **API Keys**.
+4.  Créez une nouvelle clé et **copiez-la précieusement**.
+
+---
+
+## 🤖 Étape 2 : Choisir son modèle "Free"
+
+OpenRouter propose plusieurs modèles avec l'identifiant `:free`.
+Le plus recommandé pour le code et le raisonnement complexe est :
+`nvidia/nemotron-3-super-120b-a12b:free` (120 milliards de paramètres !).
+
+---
+
+## ⚡ Étape 3 : Configuration avec Claude Code
+
+Claude Code est conçu pour l'API Anthropic, mais on peut le "tromper" en redirigeant ses requêtes vers le proxy d'OpenRouter.
+
+### A. Le fichier de configuration `.env.ai`
+
+Créez un fichier `.env.ai` (à garder localement, ne pas pusher sur GitHub) :
+
+```ini
+NEMOTRON_KEY=votre_cle_openrouter_ici
+NEMOTRON_URL=https://openrouter.ai/api
+NEMOTRON_MODEL=nvidia/nemotron-3-super-120b-a12b:free
+```
+
+### B. Le Script "Switcher" (`switch-nemotron.ps1`)
+
+Ce script configure votre terminal pour que Claude Code utilise OpenRouter comme cerveau.
+
+_(Voir le dossier `scripts/switch-nemotron.ps1` pour le code complet)._
+
+---
+
+## 🚀 Étape 4 : Lancement
+
+1.  Ouvrez un terminal (PowerShell).
+2.  Activez le profil : `. .\switch-nemotron.ps1`
+3.  Lancez Claude : `claude`
+4.  **Important :** Si Claude demande de se connecter, choisissez l'option **"3rd-party platform"**.
+
+---
+
+## 🚦 Limites & Conseils
+
+- **Rate Limits :** Les modèles gratuits sur OpenRouter sont limités à environ **50 requêtes par jour** si votre solde est de 0$.
+- **Débloquer les limites :** Si vous déposez ne serait-ce que **5$** sur votre compte (même sans les dépenser sur les modèles gratuits), votre limite passera à plus de **1000 requêtes par jour**.
+- **Auth Conflict :** Si vous avez déjà utilisé Claude Code avec une clé Anthropic officielle, tapez `claude /logout` avant de lancer le mode OpenRouter.
+
+---
