@@ -1,1 +1,36 @@
+Transformez l'IA en " chef d'orchestre " de vos outils 3D et jeux vidéo grâce au protocole MCP !
+
+
+
+L'IA ne se contente plus maintenant de répondre à des questions ni juste que vous limitiez l'usage des serveurs MCP à juste FireCrawl , Pupeteer ou Playwright , leur ecosytéme devient de plus intéressant avec des outils de plus en plus puissants ! ( tels que les SupabaseMCP ou AzureMCP de Microsoft )
+
+
+
+Personnellement,pour mon jeu que je développe avec Unity 3D et dont je manque cruellement un goût artisitique et le temps pour la modélisation(😑 , même si cela est dû au fait que j'avais commencé il y a juste quelques temps je dirais ), il ne me serait tout simplement pas possible de modéliser la ville telle que je l'ai faite ! ( ou dois je dire les bâtiments) ;
+
+(c'est juste d'une aide incroyable quoi ! )
+
+
+
+Imaginez décrire une scène en langage naturel et voir Blender la construire ! Avec BlenderMCP, vous pouvez dire « crée un cube rouge à côté d’une sphère bleue » et Blender obéit. De même dans Unity, l’IA peut générer et modifier des GameObjects en C# via UnityMCP.
+
+
+
+Même si ces outils sont en à un stade expérimental avancé , les risques d'injections de code , et quelques bugs en subsistent , c'est pour cela qu'il est vraiement trés important de comprendre l'architecture des serveurs MCP , ainsi que une connaissance du langage Python pour avoir un contrôle d'expert sur les " tools " en question ! ( Et ne pas juste faire le " outsourcing " de la compréhension au LLM et espérer que tout aille bien à 100% 🤔 )
+
+
+
+N'hésitez pas à liker , commenter et partager !
+
+
+
+Sources/Mentions : communautés GitHub et blogs MCP (voir MCP Registry, GitHub de @SiddharthAhuja et @Arodoid pour plus de détails).
+
+
+
+PS:Architecture et fonctionnement de BlenderMCP et UnityMCP !
+
+
+
+#AI #LLM #GenAI #MCP #AgenticAI #Automation #Blender3D #Unity3D #Innovation #GameDevelopment
 
