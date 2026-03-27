@@ -1,1 +1,213 @@
 
+# 🚀 Guide Complet : Comprendre et Orchestrer un Agent IA avec LangGraph, LangChain et OpenRouter
+
+Bienvenue dans ce guide détaillé ! Ce document a pour but de démystifier les concepts de **LangChain** et **LangGraph**, et de vous montrer, étape par étape, comment créer et orchestrer un agent IA en utilisant un modèle hébergé sur **OpenRouter**.
+
+---
+
+## 🧠 1. Qu'est-ce que LangChain ?
+
+**LangChain** est un framework open source conçu pour faciliter la création d'applications basées sur les grands modèles de langage (LLMs). Il fournit une interface standardisée pour interagir avec différents LLMs et permet de les combiner avec d'autres outils et sources de données.
+
+### Principales fonctionnalités :
+*   **LLMs et Prompts :** Interfaces communes pour interagir avec divers fournisseurs de LLMs (OpenAI, Anthropic, open-source, etc.) et outils de gestion de prompts.
+*   **Chains (Chaînes) :** Permettent de relier plusieurs composants (par exemple un template de prompt, suivi d'un appel à un LLM, suivi d'un parseur) en une séquence logique.
+*   **RAG (Retrieval-Augmented Generation) :** Intégration facile avec des bases de données vectorielles pour donner au LLM accès à vos propres documents.
+*   **Outils (Tools) :** Donner au LLM la capacité d'interagir avec le monde extérieur (recherche web, exécution de code, appel d'API).
+
+---
+
+## 🕸️ 2. Qu'est-ce que LangGraph ?
+
+**LangGraph** est une extension (et une évolution) de LangChain conçue pour créer des agents IA **stateful** (avec gestion d'un état) et **multi-acteurs**. 
+
+Alors que les agents "legacy" de LangChain (comme l'`AgentExecutor`) utilisaient une boucle cachée, parfois capricieuse et difficile à contrôler finement, LangGraph permet de modéliser le comportement de votre agent de manière explicite, sous la forme d'un **graphe (flowchart)**.
+
+### Pourquoi utiliser LangGraph ?
+*   **Contrôle précis :** Vous définissez explicitement les nœuds (les actions à effectuer) et les arêtes (les conditions de transition entre ces actions).
+*   **Cycles (Boucles) :** Contrairement aux pipelines traditionnels (qui sont des modèles linéaires ou DAGs), LangGraph permet de créer des boucles (ex : "l'agent cherche de l'info → l'info est mauvaise → l'agent modifie sa requête → il recherche de nouveau").
+*   **Mémoire (State) :** L'état global (historique des messages, variables temporaires) est maintenu et partagé de nœud en nœud, et peut être sauvegardé en base de données.
+*   **Human-in-the-loop :** Capacité de mettre l'agent en pause pour demander une validation humaine avant de déclencher une étape critique (comme l'envoi d'un email).
+
+---
+
+## 🛠️ 3. Orchestrer un Agent IA via OpenRouter de A à Z
+
+**OpenRouter** est une API unifiée qui vous donne accès à des dizaines de LLMs (GPT-4o, Claude 3.5 Sonnet, Llama 3, Mistral, etc.) avec le même standard que l'API d'OpenAI. Idéal pour un agent : vous changez de modèle en modifiant une seule variable !
+
+### Étape 1 : Prérequis et Installation
+
+Installez les bibliothèques nécessaires dans votre environnement :
+
+```bash
+pip install langchain langchain-openai langgraph
+```
+
+Définissez ensuite votre clé d'API OpenRouter dans votre terminal ou votre fichier `.env` :
+
+```bash
+export OPENROUTER_API_KEY="sk-or-v1-..."
+```
+
+### Étape 2 : Configuration du Modèle via OpenRouter
+
+Comme OpenRouter émule l'API OpenAI, on utilise `ChatOpenAI` de LangChain en redéfinissant simplement le `base_url` (vers openrouter) et le nom du modèle.
+
+```python
+import os
+from langchain_openai import ChatOpenAI
+
+# Remplacez par le modèle de votre choix disponible sur OpenRouter
+# Ex : "anthropic/claude-3.5-sonnet", "meta-llama/llama-3-8b-instruct", "openai/gpt-4o-mini"
+MODEL_NAME = "anthropic/claude-3.5-sonnet"
+
+llm = ChatOpenAI(
+    openai_api_key=os.environ.get("OPENROUTER_API_KEY"),
+    openai_api_base="https://openrouter.ai/api/v1",
+    model_name=MODEL_NAME
+)
+```
+
+### Étape 3 : Création d'un outil (Tool)
+
+Fournissons une "compétence" à notre agent via un outil. Par exemple, une fonction mathématique super basique.
+
+```python
+from langchain_core.tools import tool
+
+@tool
+def multiply(a: int, b: int) -> int:
+    """Multiplie deux nombres entiers ensemble."""
+    return a * b
+
+tools = [multiply]
+
+# On 'bind' l'outil au LLM pour l'avertir de son existence (Function Calling)
+llm_with_tools = llm.bind_tools(tools)
+```
+
+### Étape 4 : Définition de l'état de l'Agent (State)
+
+Le graphe fait circuler un "état" entre les nœuds. Nous utilisons une structure simple conservant l'historique des messages.
+
+```python
+from typing import Annotated, Sequence
+from typing_extensions import TypedDict
+from langchain_core.messages import BaseMessage
+from langgraph.graph.message import add_messages
+
+# L'état conserve une liste de messages. La fonction `add_messages` 
+# fait en sorte d'ajouter/fusionner les nouveaux messages existants.
+class AgentState(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], add_messages]
+```
+
+### Étape 5 : Création des Nœuds (Nodes)
+
+Un nœud est une fonction Python qui prend l'état (State) actuel en entrée, fait quelque chose, et retourne une mise à jour de l'état.
+
+```python
+from langgraph.prebuilt import ToolNode
+
+# 1. Le Nœud Agent : Fait réfléchir le modèle
+def agent_node(state: AgentState):
+    # L'agent lit tout l'historique...
+    messages = state["messages"]
+    # ...génère une réponse ou décide d'utiliser un outil...
+    response = llm_with_tools.invoke(messages)
+    # ...et retourne ce nouveau message à inclure dans l'état.
+    return {"messages": [response]}
+
+# 2. Le Nœud Outils : Exécute le code python si le LLM le demande
+# LangGraph fournit un ToolNode tout prêt pour ça.
+tool_node = ToolNode(tools)
+```
+
+### Étape 6 : Logique de Routage (Edges)
+
+Nous créons une fonction décisionnelle pour indiquer au graphe : "Vais-je au nœud des Outils, ou le programme est-il terminé ?"
+
+```python
+def should_continue(state: AgentState):
+    # On regarde le dernier message généré (celui du LLM)
+    last_message = state["messages"][-1]
+    
+    # Si ce message contient une demande d'appel d'outil, on le route vers 'tools'
+    if last_message.tool_calls:
+        return "tools"
+    
+    # Sinon (le LLM parle "en texte libre"), on arrête l'exécution
+    return "END"
+```
+
+### Étape 7 : Assemblage du Graphe
+
+Nous avons nos briques, on les rassemble en un workflow de type graphe.
+
+```python
+from langgraph.graph import StateGraph, START, END
+
+# 1. Initialisation
+builder = StateGraph(AgentState)
+
+# 2. Ajout des nœuds
+builder.add_node("agent", agent_node)
+builder.add_node("tools", tool_node)
+
+# 3. Connexions (Edges)
+# Au lancement, on commence toujours par le nœud de réflexion (l'agent LLM)
+builder.add_edge(START, "agent")
+
+# Depuis l'agent, on applique notre routage conditionnel...
+builder.add_conditional_edges(
+    "agent",
+    should_continue,
+    {
+        "tools": "tools", # Si should_continue retourne "tools", on va au nœud 'tools'
+        "END": END        # Sinon on va vers la fin prédéfinie 'END'
+    }
+)
+
+# Important : après avoir exécuté un outil, on revient SYSTÉMATIQUEMENT à l'agent
+# pour qu'il analyse la réponse fournie par l'outil.
+builder.add_edge("tools", "agent")
+
+# 4. Compilation (L'agent devient prêt à l'emploi)
+agent_graph = builder.compile()
+```
+
+### Étape 8 : Exécution de l'Agent
+
+Testons-le avec une question nécessitant un outil mathématique.
+
+```python
+from langchain_core.messages import HumanMessage
+
+# Phrase d'amorce
+user_input = "Combien font 42 multiplié par 72 ?"
+inputs = {"messages": [HumanMessage(content=user_input)]}
+
+# On stream (suit en direct) les étapes de l'exécution
+print("🤖 Lancement de l'agent ...\n")
+for event in agent_graph.stream(inputs, stream_mode="values"):
+    last_message = event["messages"][-1]
+    
+    # pretty_print() affiche le message joliment selon la catégorie (User, AI, Tool)
+    last_message.pretty_print()
+```
+
+### 📈 Résultat du flux de l'agent :
+1. **Human :** *Combien font 42 multiplié par 72 ?*
+2. L'état arrive au nœud `agent_node`...
+3. **AI (LLM) :** Le LLM ne répond pas sous forme de texte, mais émet explicitement un "Appel d'Outil" (Tool Call) pour la fonction `multiply` avec les arguments `{"a": 42, "b": 72}`.
+4. Le graphe emprunte l'arête conditionnelle et route vers `tool_node`...
+5. **Tool:** Exécution de la fonction Python qui retourne `3024`.
+6. Le graphe force le retour depuis l'arête `tools` vers le nœud `agent`...
+7. **AI (LLM) :** Le LLM reçoit la réponse de l'outil, et formule une phrase pour l'utilisateur : *"Le résultat de 42 multiplié par 72 est 3024."*
+8. L'outil vérifie `should_continue`. Il n'y a pas d'appel de nouvel outil. Le routage pointe vers **END**.
+
+---
+
+## 🎯 Conclusion
+
+Avec ce setup, vous venez combiner la standardisation de **LangChain** et la solidité des workflows logiques de **LangGraph**. L'utilisation du Endpoint universel de **OpenRouter** vous permet de switcher d'un modèle Anthropic à un modèle OpenAI très simplement dans votre code, vous offrant le nec plus ultra pour faire tourner ou tester des Agent IA dans des environnements variés ! Vous n'avez plus qu'à écrire de nouveaux outils (`@tool`) et les attacher à votre graphe ! 🚀
