@@ -1,1 +1,216 @@
 
+# Guide d’installation et de configuration — Amazon Bedrock + Claude Code dans VS Code
+
+## Objectif
+Mettre en place un workflow simple pour utiliser Claude via **Amazon Bedrock** dans **VS Code** avec **Claude Code**.
+
+---
+
+## 1) Ce qu’il faut savoir avant de commencer
+
+- **Amazon Bedrock** est le service AWS qui donne accès à des modèles de fondation de plusieurs fournisseurs, dont **Anthropic Claude**.
+- AWS indique que **Claude Opus 4.6** est disponible dans Amazon Bedrock.
+- **Claude Code** fonctionne dans **VS Code** et prend en charge les **fournisseurs tiers**, dont **Amazon Bedrock**.
+- Les nouveaux clients AWS peuvent recevoir **jusqu’à 200 $ de crédits Free Tier**.
+
+---
+
+## 2) Créer ton compte AWS
+
+1. Va sur la page AWS Free Tier.
+2. Crée un compte AWS.
+3. Vérifie ton identité.
+4. Ajoute un moyen de paiement.
+
+> Important : ces crédits sont des crédits AWS. Ils ne sont pas un abonnement séparé “Bedrock”.
+
+---
+
+## 3) Activer Amazon Bedrock
+
+1. Ouvre la console AWS.
+2. Cherche **Bedrock**.
+3. Va dans le **Model catalog** ou **Model access**.
+4. Demande l’accès au modèle Claude que tu veux utiliser.
+5. Vérifie la région où le modèle est disponible.
+6. Une fois l’accès activé, note l’ID du modèle dans Bedrock.
+
+### Conseils
+- Commence par la région la plus proche de toi si le modèle y est disponible.
+- Vérifie toujours la page officielle de disponibilité du modèle avant de coder.
+
+---
+
+## 4) Préparer l’accès AWS côté machine
+
+### Installer AWS CLI
+Anthropic recommande une version récente du **AWS CLI** pour utiliser Bedrock.
+
+```bash
+aws --version
+```
+
+Si besoin, installe AWS CLI v2 puis configure tes identifiants :
+
+```bash
+aws configure
+```
+
+Vérifie ensuite :
+
+```bash
+aws sts get-caller-identity
+```
+
+---
+
+## 5) Tester Bedrock avant de brancher Claude Code
+
+### Exemple Python simple
+
+```python
+import boto3
+
+client = boto3.client("bedrock-runtime", region_name="us-east-1")
+
+response = client.converse(
+    modelId="anthropic.claude-opus-4-6-v1",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {"text": "Explique-moi la différence entre un prefab et un ScriptableObject dans Unity."}
+            ],
+        }
+    ],
+)
+
+print(response)
+```
+
+### Ce que ce test vérifie
+- que tes credentials AWS sont corrects,
+- que la région est bonne,
+- que l’accès au modèle fonctionne,
+- que Bedrock répond correctement.
+
+---
+
+## 6) Installer Claude Code dans VS Code
+
+1. Ouvre VS Code.
+2. Ouvre l’onglet **Extensions**.
+3. Cherche **Claude Code**.
+4. Installe l’extension officielle.
+
+Anthropic indique que l’extension VS Code offre une interface native dans l’IDE, avec plan review, inline diffs, @-mentions, historique de conversation et accès au CLI depuis le terminal intégré.
+
+---
+
+## 7) Connecter Claude Code à Amazon Bedrock
+
+Quand tu ouvres Claude Code pour la première fois :
+
+1. Clique sur **Sign in**.
+2. Choisis l’option liée à un fournisseur tiers.
+3. Sélectionne **Amazon Bedrock**.
+4. Fournis tes identifiants AWS ou ton profil AWS.
+5. Choisis la région Bedrock correcte.
+6. Valide la connexion.
+
+### Méthodes possibles
+Selon ton setup, tu peux utiliser :
+- un profil AWS déjà configuré,
+- les variables d’environnement AWS,
+- ou les identifiants associés à ton compte AWS.
+
+Exemple :
+
+```bash
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=us-east-1
+```
+
+---
+
+
+## 8) Utiliser Claude dans VS Code
+
+Une fois Claude Code connecté à Bedrock, tu peux l’utiliser pour :
+
+- lire un script Unity,
+- corriger un bug C#,
+- refactoriser des managers,
+- créer un `ScriptableObject`,
+- générer un système de dialogue,
+- t’aider sur l’architecture d’un case system.
+
+### Exemples de prompts
+- “Analyse ce système de dialogue et propose une version plus découplée.”
+- “Crée une structure simple pour preuves, déductions et conclusions.”
+- “Refactorise ce manager Unity pour réduire les dépendances.”
+- “Explique pourquoi ce script ne sérialise pas bien dans l’Inspector.”
+
+---
+
+## 9) Workflow recommandé pour un projet Unity
+
+### Étape 1 — tester le modèle
+Avant de l’utiliser dans VS Code pour tout ton projet, fais d’abord un petit test Bedrock.
+
+### Étape 2 — brancher Claude Code
+Une fois le test validé, connecte Claude Code à Bedrock.
+
+### Étape 3 — travailler par blocs
+Ne demande pas au modèle de tout construire d’un coup.  
+Travaille plutôt par :
+- architecture,
+- système de dialogue,
+- preuve,
+- case,
+- UI,
+- sauvegarde.
+
+### Étape 4 — valider à la main
+L’IA propose.  
+Toi, tu valides.  
+C’est le meilleur ratio vitesse / contrôle.
+
+---
+
+## 10) Pièges à éviter
+
+- Oublier de vérifier la région Bedrock.
+- Confondre crédits AWS et usage illimité.
+- Lancer de gros changements sans test préalable.
+- Mélanger trop de plateformes dès le départ.
+- Laisser l’agent toucher au projet sans validation.
+
+---
+
+## 11) Check-list rapide
+
+- [ ] Compte AWS créé
+- [ ] Crédits Free Tier disponibles
+- [ ] Bedrock activé
+- [ ] Accès au modèle Claude demandé
+- [ ] AWS CLI installé et configuré
+- [ ] Test Bedrock réussi
+- [ ] Claude Code installé dans VS Code
+- [ ] Connexion Bedrock validée
+- [ ] Premier prompt Unity testé
+
+---
+
+## 12) Résumé
+
+Le chemin le plus propre est :
+
+1. **AWS Free Tier**
+2. **Amazon Bedrock**
+3. **Accès au modèle Claude**
+4. **Claude Code dans VS Code**
+5. **Tests sur ton projet Unity**
+
+Tu obtiens ainsi un workflow sérieux, assez proche d’un usage pro, sans dépendre d’un seul fournisseur.
